@@ -1,11 +1,8 @@
 <<<<<<< HEAD
-# AI招聘助手 - 简历智能评估Agent
-> 项目状态：**半成品可运行版本** | 仅本地交互式CLI可用，持续迭代中
-> 技术底座：Python + LangChain + DeepSeek LLM
-
-## 📌 项目简介
-面向HR招聘场景的智能简历处理Agent，实现简历文本结构化解析、人岗匹配打分、用工风险筛查、HR固定文案生成。
-当前仅支持**纯文本简历+岗位JD**交互，无网页前端、无持久缓存、无PDF解析，后续规划完整工程化升级。
+# AI---Agent
+面向HR招聘场景的智能简历处理LangChain Agent
+> 项目状态：**半成品可本地运行** | 仅CLI交互式控制台，持续迭代开发
+> 技术栈：Python + LangChain + DeepSeek LLM
 
 ## ✨ 当前已实现功能（可直接运行）
 1. 内容守卫拦截：自动过滤闲聊、无关提问，节约LLM Token消耗
@@ -15,9 +12,10 @@
 5. 文案生成：内置模板输出面试邀约、拒绝通知（零LLM调用）
 6. JD缓存交互：发送JD可选择缓存，后续粘贴简历自动全流程评估
 7. 缓存清理指令：一键清空简历/JD/Token统计缓存
-8. Token用量监控：累计超限主动弹窗警告，防止高额消耗
+8. Token用量监控：累计超限主动弹窗警告，防止高额API消耗
 
 ## 📂 真实项目目录结构
+
 agent 开发 - langchain/
 ├── main.py # 项目启动入口，交互式对话主程序
 ├── requirements.txt # 项目全部 Python 依赖（含后续扩展包）
@@ -48,89 +46,64 @@ agent 开发 - langchain/
 ├── .gitkeep
 └── test_agent_quality.py # Agent 功能质量自测脚本
 
-## 🛠 技术栈（现有）
-- 运行环境：Python 3.10+
-- Agent框架：LangChain Tool
-- LLM服务商：DeepSeek（兼容OpenAI标准接口）
-- 日志：loguru
-- Token计算：tiktoken
-- 环境管理：python-dotenv
-
-## 🚀 快速本地启动
-### 1. 前置准备
-1. 新建项目根目录 `.env` 文件，填入密钥
-DEEPSEEK_API_KEY=你的deepseek密钥
+## 🚀 本地启动使用说明
+### 1. 环境配置
+复制 `.env.example` 新建根目录 `.env`，填入DeepSeek密钥：
+DEEPSEEK_API_KEY=你的密钥
 DEEPSEEK_BASE_URL=https://api.deepseek.com/v1
 LLM_MODEL=deepseek-v4-flash
-# Token成本配置
-COST_PER_1K_INPUT=0.000014
-COST_PER_1K_OUTPUT=0.000028
-# Token限制
 MAX_TOTAL_TOKENS_PER_CONVERSATION=16000
-MAX_TOKENS_PER_REQUEST=4000
-# 模型温度
-LLM_TEMPERATURE_PARSER=0.1
-LLM_TEMPERATURE_MATCHER=0.3
-LLM_TEMPERATURE_RISK=0.2
-LLM_TEMPERATURE_OFFER=0.5
-# 超时重试
-REQUEST_TIMEOUT=60
-MAX_RETRIES=3
-RETRY_DELAY=1.0
 
-2. 安装依赖
-powershell
-# 创建虚拟环境
+### 2. 安装依赖
 python -m venv .venv
-# Windows激活
 .venv\Scripts\Activate.ps1
-# 安装全部依赖
 pip install -r requirements.txt
 
-3. 启动程序
+### 3. 启动程序
 python main.py
-启动后自动打印欢迎话术，支持指令：
-直接粘贴岗位 JD → 回复是缓存，否放弃
-纯粘贴简历：已有缓存 JD 自动「解析 + 匹配 + 风控」
-解析简历 + 简历文本：仅解析不评估
-面试邀约 / 拒绝通知：生成对应文案
-清空缓存：重置简历、JD、Token 统计
-quit：退出程序
 
-⚠️ 当前版本缺陷
-仅 CLI 控制台交互，无 Web 前端页面
-内存临时缓存，重启程序全部丢失，无 Redis 持久化
-仅支持文字简历，不支持 PDF/Word 文件上传读取
-意图识别仅关键词匹配，无语义意图 Agent
-无接口服务，无法前后端分离调用
-无单元测试、批量自测脚本、日志持久化
-无用户会话隔离，全局单缓存
+支持交互指令：
+粘贴岗位 JD → 回复是缓存，否放弃缓存
+纯粘贴简历：已有缓存 JD 自动执行「解析 + 匹配 + 风控」
+解析简历 + 简历文本：仅解析，不执行匹配评估
+面试邀约 / 拒绝通知：自动生成 HR 标准文案
+清空缓存：重置简历、JD、Token 全部统计数据
+quit：退出控制台程序
 
-📅 后续迭代 Roadmap
+# ⚠️ 当前版本已知缺陷
+仅 CLI 控制台交互，无 Web 可视化前端页面
+内存临时缓存，重启程序所有数据丢失，暂无 Redis 持久化存储
+仅支持纯文本简历，暂不支持 PDF/Word 文件读取解析
+意图识别仅依靠关键词匹配，无分层语义 Agent
+未封装 HTTP 接口，无法前后端分离调用
+无多用户会话隔离，全局单一缓存
+缺少完整单元测试、日志本地持久化存储
+
+# 📅 后续迭代 Roadmap
 短期新增功能
-PDF 简历文本提取工具（PyPDF2），支持上传 PDF 解析
-Redis 持久缓存：会话、JD、解析结果长期存储
-Token 超限自动提示优化，新增手动重置统计
+PDF 简历文本提取模块（PyPDF2），支持本地 PDF 解析
+Redis 持久缓存：会话、JD、简历解析结果永久存储
+Token 超限提示优化，新增一键重置 Token 统计指令
 
 中期架构升级
-重构 Agent 为 LangGraph 工作流，拆分状态节点、增加分支路由
-FastAPI 接口封装，提供 POST HTTP 接口
-简易静态前端页面（HTML/CSS/JS），对接后端接口
-多会话隔离，支持多用户同时使用
+重构 LangChain 工具流程，迁移至 LangGraph 状态机工作流
+FastAPI 封装后端 HTTP 接口，提供 POST 调用能力
+开发简易 HTML 静态前端页面，对接后端接口
+实现多会话隔离，支持多人同时独立使用
 
-长期工程化
-完整单元测试用例
-日志本地文件持久化
-配置热加载、参数可视化调整
-批量简历批量评估功能
-导出评估报告 PDF
+长期工程化完善
+编写全套单元测试用例，完善 test 自测脚本
+日志持久化写入本地文件，分级日志查看
+配置热加载，修改参数无需重启项目
+批量简历导入、批量自动评估功能
+支持导出候选人评估报告为 PDF 文件
 
-❓ 常见问题
-Q：发送是/清空缓存被守卫拦截？
-A：已更新 guard 白名单，重新拉取代码运行即可。
-Q：解析简历大量 “信息不明确”？
-A：优化简历原文完整度，或调整 parser 解析 Prompt。
-Q：Token 消耗过高？
-A：避免一次性粘贴全项目代码给模型，分单文件修改；及时清空缓存重置统计。
-Q：启动报模块找不到？
-A：必须用python main.py启动，自动注入项目根目录路径。
+# ❓ 常见问题
+Q：输入是/ 清空缓存被守卫拦截？
+A：已更新 guard.py 关键词白名单，拉取最新代码重新运行即可。
+Q：简历解析大量字段显示「信息不明确」？
+A：粘贴完整规范简历原文，或调整 parser 内部提取 Prompt。
+Q：API Token 消耗过快、扣费高？
+A：不要一次性粘贴大量完整代码给模型，分单文件修改；定期执行清空缓存重置累计 Token。
+Q：启动程序提示模块找不到？
+A：必须使用python main.py启动，程序自动注入项目根目录路径。
