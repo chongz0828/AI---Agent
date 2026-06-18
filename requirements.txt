@@ -1,0 +1,18 @@
+# 核心依赖
+openai>=1.40.0             # 调用大模型 API
+langchain>=0.2.0           # Agent 框架基础
+langgraph>=0.0.20          # 工作流编排（后续用）
+tiktoken>=0.5.0            # Token 估算
+
+# 工具与辅助
+python-dotenv>=1.0.0       # 加载 .env 环境变量
+pydantic>=2.0.0            # 数据模型定义
+httpx>=0.27.0              # 异步 HTTP 支持
+
+# 日志与调试
+loguru>=0.7.0              # 更优雅的日志（可选，也可用标准 logging）
+
+# 开发/测试相关（可选，但强烈推荐）
+pytest>=8.0.0              # 单元测试
+black>=24.0.0              # 代码格式化
+ruff>=0.3.0                # 代码检查与自动修复
