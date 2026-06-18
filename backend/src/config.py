@@ -1,4 +1,4 @@
-"""
+﻿"""
 AI-HR-assistant 全局配置中心
 负责加载 .env 环境变量，统一管理 API Key、模型参数、成本控制等
 """
@@ -52,6 +52,15 @@ LLM_TEMPERATURE_PARSER = float(os.getenv("LLM_TEMPERATURE_PARSER", 0.1))
 LLM_TEMPERATURE_MATCHER = float(os.getenv("LLM_TEMPERATURE_MATCHER", 0.3))
 LLM_TEMPERATURE_RISK = float(os.getenv("LLM_TEMPERATURE_RISK", 0.2))
 LLM_TEMPERATURE_OFFER = float(os.getenv("LLM_TEMPERATURE_OFFER", 0.5))
+LLM_TEMPERATURE_INTENT = float(os.getenv("LLM_TEMPERATURE_INTENT", 0.1))
+
+# ========== 8. Redis 缓存配置 ==========
+REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
+REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
+REDIS_DB = int(os.getenv("REDIS_DB", 0))
+REDIS_PASSWORD = os.getenv("REDIS_PASSWORD", "")
+CACHE_EXPIRE_SECONDS = int(os.getenv("CACHE_EXPIRE_SECONDS", 604800))  # 7 days
+
 
 
 # ========== 7. 启动时打印关键配置（确认加载正确） ==========

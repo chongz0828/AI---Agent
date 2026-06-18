@@ -25,6 +25,7 @@ from .config import (
     LLM_TEMPERATURE_MATCHER,
     LLM_TEMPERATURE_RISK,
     LLM_TEMPERATURE_OFFER,
+    LLM_TEMPERATURE_INTENT,
 )
 
 # ===================== 全局常量 & 映射表 =====================
@@ -33,6 +34,7 @@ TEMP_MAP = {
     "matcher": LLM_TEMPERATURE_MATCHER,
     "risk": LLM_TEMPERATURE_RISK,
     "offer": LLM_TEMPERATURE_OFFER,
+    "intent": LLM_TEMPERATURE_INTENT,
     "guard": 0.1,
 }
 
