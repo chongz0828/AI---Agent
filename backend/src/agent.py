@@ -170,6 +170,8 @@ def _process_input(session_id: str, user_input: str) -> str:
     # 6. unknown -> 自动判断
     if _is_resume_content(raw_input) and len(raw_input) > 20:
         jd = cache_service.get(session_id, "jd")
+        if not jd:
+            jd = cache_service.get("default", "jd")
         if jd:
             logger.info("纯简历+缓存JD，自动解析并综合评估")
             parse_res = resume_parse_tool.invoke({"resume_text": raw_input, "output_for_user": False})
