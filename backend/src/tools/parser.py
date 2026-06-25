@@ -5,6 +5,7 @@ from loguru import logger
 from langchain_core.tools import tool
 from langchain_core.prompts import ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate
 from backend.src.llm import llm_chat
+from .rules import apply_rules
 from .resume_schema import ResumeSchema
 
 PARSER_SCENE = "parser"
@@ -116,7 +117,10 @@ def parse_resume(resume_text: str, output_for_user: bool = False) -> Dict[str, A
     _PARSE_CACHE["json"] = cleaned
     _PARSE_CACHE["metrics"] = metrics
     try:
-        _PARSE_CACHE["data"] = json.loads(cleaned)
+        data = json.loads(cleaned)
+        data = apply_rules(data)
+        _PARSE_CACHE["data"] = data
+        cleaned = json.dumps(data, ensure_ascii=False)
     except json.JSONDecodeError:
         _PARSE_CACHE["data"] = None
     if output_for_user:
@@ -134,5 +138,6 @@ def resume_parse_tool(resume_text: str, output_for_user: bool = False) -> str:
     if "error" in result:
         return f"简历解析失败：{result['error']}"
     return result["report"]
+
 
 
