@@ -1,177 +1,208 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>AI 招聘助手</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f5f5f5;height:100vh;display:flex;justify-content:center}
-#app{width:100%;max-width:720px;display:flex;flex-direction:column;height:100vh;background:#fff;box-shadow:0 0 20px rgba(0,0,0,.06)}
-hdr{display:flex;align-items:center;gap:10px;padding:14px 20px;border-bottom:1px solid #eee}
-hdr .l{width:30px;height:30px;background:linear-gradient(135deg,#2563eb,#7c3aed);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px}
-hdr h1{font-size:16px;font-weight:600;flex:1}
-hdr .s{width:7px;height:7px;border-radius:50%;background:#22c55e}
+body{background:#f0f2f5;font-family:-apple-system,BlinkMacSystemFont,sans-serif;height:100vh;display:flex;justify-content:center;align-items:center}
+#app{width:100%;max-width:800px;height:100vh;display:flex;flex-direction:column;background:#fff;box-shadow:0 0 40px rgba(0,0,0,.06)}
+header{padding:16px 24px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;gap:12px}
+header .logo{width:32px;height:32px;background:linear-gradient(135deg,#2563eb,#7c3aed);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px}
+header h1{font-size:17px;font-weight:600;flex:1}
+header .dot{width:7px;height:7px;border-radius:50%;background:#22c55e}
 
-/* JD 栏 */
-.jd-bar{padding:8px 20px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;gap:8px;font-size:13px}
-.jd-bar .tag{padding:3px 10px;border-radius:6px;background:#eef2ff;color:#2563eb;font-size:12px;font-weight:500}
-.jd-bar .jd-btn{padding:4px 12px;border:1px solid #e0e0e0;border-radius:6px;background:#fff;cursor:pointer;font-size:12px;color:#666}
-.jd-bar .jd-btn:hover{border-color:#2563eb;color:#2563eb}
-.jd-bar .jd-stat{color:#999;font-size:12px;margin-left:auto}
-.jd-panel{display:none;padding:12px 20px;border-bottom:1px solid #eee;flex-direction:column;gap:8px}
+/* JD bar */
+.jd-wrap{padding:10px 24px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;gap:10px;font-size:13px}
+.jd-wrap .tag{padding:3px 8px;border-radius:4px;background:#eef2ff;color:#2563eb;font-size:11px;font-weight:600}
+.jd-wrap .stat{color:#999;font-size:12px;flex:1}
+.jd-wrap .btn{padding:4px 12px;border:1px solid #e5e7eb;border-radius:6px;background:#fff;cursor:pointer;font-size:12px;color:#555;transition:.15s}
+.jd-wrap .btn:hover{border-color:#2563eb;color:#2563eb}
+.jd-panel{display:none;padding:16px 24px;border-bottom:1px solid #f0f0f0;flex-direction:column;gap:10px;background:#fafafa}
 .jd-panel.show{display:flex}
-.jd-panel textarea{width:100%;height:120px;padding:10px;border:1.5px solid #e0e0e0;border-radius:8px;resize:vertical;font-size:13px;font-family:inherit;outline:0}
-.jd-panel textarea:focus{border-color:#2563eb}
+.jd-panel textarea{width:100%;min-height:100px;padding:12px;border:1px solid #e5e7eb;border-radius:8px;resize:vertical;font-size:13px;font-family:inherit;outline:0;transition:.15s}
+.jd-panel textarea:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.08)}
 .jd-panel .row{display:flex;gap:8px}
-.jd-panel .row button{padding:6px 16px;border:0;border-radius:8px;cursor:pointer;font-size:13px}
-.jd-panel .save{background:#2563eb;color:#fff}
-.jd-panel .clear{background:#fef2f2;color:#dc2626}
-.jd-panel .close{background:#f0f0f0;color:#666}
+.jd-panel .row button{padding:6px 16px;border:0;border-radius:6px;cursor:pointer;font-size:13px;font-weight:500}
+.jd-panel .primary{background:#2563eb;color:#fff}
+.jd-panel .primary:hover{background:#1d4ed8}
+.jd-panel .danger{background:#fef2f2;color:#dc2626}
+.jd-panel .danger:hover{background:#fee2e2}
+.jd-panel .ghost{background:#f3f4f6;color:#6b7280}
+.jd-panel .ghost:hover{background:#e5e7eb}
 
-/* 消息 */
-.msgs{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:10px}
-.msgs .e{text-align:center;color:#aaa;padding:40px;font-size:14px}
-.msg{padding:12px 16px;border-radius:12px;font-size:14px;line-height:1.6;max-width:88%;white-space:pre-wrap}
-.msg.u{background:#2563eb;color:#fff;align-self:flex-end;border-bottom-right-radius:4px}
-.msg.a{background:#f0f0f0;color:#1a1a1a;align-self:flex-start;border-bottom-left-radius:4px}
-.msg.e{background:#fef2f2;color:#dc2626;align-self:flex-start}
+/* Messages */
+.msgs{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:16px}
+.msgs::-webkit-scrollbar{width:5px}
+.msgs::-webkit-scrollbar-thumb{background:#e0e0e0;border-radius:4px}
+.msg{max-width:78%;clear:both}
+.msg.user{float:right}
+.msg.ai{float:left}
+.msg .b{padding:12px 16px;border-radius:12px;font-size:14px;line-height:1.6;white-space:pre-wrap}
+.msg.user .b{background:#2563eb;color:#fff;border-bottom-right-radius:4px}
+.msg.ai .b{background:#f3f4f6;color:#1a1a1a;border-bottom-left-radius:4px;border:1px solid #f0f0f0}
+.msg.err .b{background:#fef2f2;color:#dc2626;border:1px solid #fecaca}
+.clr{clear:both}
+.empty{padding:80px 0;text-align:center;color:#bbb;font-size:14px;width:100%}
 
-/* 底部 */
-.btm{padding:12px 20px 16px;border-top:1px solid #eee;display:flex;flex-direction:column;gap:8px}
-.inp{display:flex;gap:8px}
-.inp textarea{flex:1;padding:10px 14px;border:1.5px solid #e0e0e0;border-radius:10px;resize:none;font-size:14px;font-family:inherit;outline:0;line-height:1.5;max-height:100px}
-.inp textarea:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.1)}
-.inp button{width:40px;height:40px;border:0;border-radius:10px;background:#2563eb;color:#fff;cursor:pointer;font-size:16px;flex-shrink:0}
-.inp button:disabled{background:#ccc;cursor:not-allowed}
-.up{display:flex;gap:8px}
-.up label{padding:6px 14px;border:1px solid #e0e0e0;border-radius:8px;cursor:pointer;font-size:13px;color:#666;transition:.15s}
-.up label:hover{border-color:#2563eb;color:#2563eb}
-.up input{display:none}
+/* Input */
+.btm{padding:16px 24px 20px;border-top:1px solid #f0f0f0;display:flex;flex-direction:column;gap:8px}
+.inp-wrap{display:flex;gap:8px;align-items:flex-end}
+.inp-wrap textarea{flex:1;padding:10px 14px;border:1.5px solid #e5e7eb;border-radius:10px;resize:none;font-size:14px;font-family:inherit;outline:0;line-height:1.5;max-height:100px;transition:.2s}
+.inp-wrap textarea:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.inp-wrap button{width:40px;height:40px;border:0;border-radius:10px;background:#2563eb;color:#fff;cursor:pointer;font-size:18px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:.15s}
+.inp-wrap button:hover{background:#1d4ed8}
+.inp-wrap button:disabled{background:#d1d5db;cursor:not-allowed}
+.tools{display:flex;gap:8px;align-items:center}
+.tools label{padding:5px 14px;border:1px solid #e5e7eb;border-radius:6px;cursor:pointer;font-size:12px;color:#6b7280;transition:.15s}
+.tools label:hover{border-color:#2563eb;color:#2563eb}
+.tools input{display:none}
+.tools .clear-hint{background:none;border:0;font-size:12px;color:#bbb;cursor:pointer;padding:4px 8px;border-radius:4px;margin-left:auto}
+.tools .clear-hint:hover{color:#dc2626;background:#fef2f2}
 </style>
 </head>
 <body>
 <div id="app">
-<hdr><div class="l">H</div><h1>AI 招聘助手</h1><div class="s"></div></hdr>
+<header>
+<div class="logo">H</div>
+<h1>AI 招聘助手</h1>
+<div class="dot"></div>
+</header>
 
-<div class="jd-bar">
+<div class="jd-wrap">
 <span class="tag">JD</span>
-<span id="jdStatus" class="jd-stat">未设置</span>
-<button class="jd-btn" onclick="toggleJD()">管理 JD</button>
+<span class="stat" id="jdStat">未设置</span>
+<button class="btn" onclick="toggleJD()">管理</button>
 </div>
-
 <div class="jd-panel" id="jdPanel">
-<textarea id="jdInput" placeholder="粘贴岗位 JD 内容..."></textarea>
+<textarea id="jdInput" placeholder="粘贴岗位 JD 内容..." rows="3"></textarea>
 <div class="row">
-<button class="save" onclick="saveJD()">保存 JD</button>
-<button class="clear" onclick="clearJD()">清空 JD</button>
-<button class="close" onclick="toggleJD()">关闭</button>
+<button class="primary" onclick="saveJD()">保存 JD</button>
+<button class="danger" onclick="clearJD()">清空</button>
+<button class="ghost" onclick="toggleJD()">关闭</button>
 </div>
 </div>
 
 <div class="msgs" id="msgs">
-<div class="e">发送消息或上传简历文件</div>
+<div class="empty">发送消息或上传简历文件</div>
 </div>
 
 <div class="btm">
-<div class="inp">
+<div class="inp-wrap">
 <textarea id="input" rows="2" placeholder="输入内容，Enter 发送"></textarea>
 <button id="sendBtn" onclick="send()">→</button>
 </div>
-<div class="up">
+<div class="tools">
 <label>+ 上传简历文件 <input type="file" accept=".pdf,.docx,.txt" onchange="upload(this)"></label>
+<button class="clear-hint" onclick="clearHistory()">清除会话</button>
 </div>
 </div>
 </div>
 
 <script>
-const API = 'http://127.0.0.1:8000';
-const msgs = document.getElementById('msgs');
-const inp = document.getElementById('input');
-const sendBtn = document.getElementById('sendBtn');
-const jdPanel = document.getElementById('jdPanel');
-const jdInput = document.getElementById('jdInput');
-const jdStatus = document.getElementById('jdStatus');
+const API = "http://127.0.0.1:8000";
+const msgs = document.getElementById("msgs");
+const inp = document.getElementById("input");
+const sendBtn = document.getElementById("sendBtn");
+const jdPanel = document.getElementById("jdPanel");
+const jdInput = document.getElementById("jdInput");
+const jdStat = document.getElementById("jdStat");
 let loading = false;
 
-inp.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
+inp.addEventListener("keydown", function(e) {
+    if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
         send();
     }
 });
 
 function addMsg(role, content) {
-    const e = msgs.querySelector('.e');
+    const e = msgs.querySelector(".empty");
     if (e) e.remove();
-    const d = document.createElement('div');
-    d.className = 'msg ' + role;
-    d.textContent = content;
-    msgs.appendChild(d);
+    const w = document.createElement("div");
+    w.className = "msg " + role;
+    w.innerHTML = "<div class="b">" + content.replace(/</g,"&lt;").replace(/\n/g,"<br>") + "</div><div class="clr"></div>";
+    msgs.appendChild(w);
     msgs.scrollTop = msgs.scrollHeight;
 }
 
+function clearHistory() {
+    if (!confirm("确认清除所有对话记录？")) return;
+    msgs.innerHTML = "<div class="empty">发送消息或上传简历文件</div>";
+    inp.value = "";
+}
+
 function toggleJD() {
-    jdPanel.classList.toggle('show');
-    if (jdPanel.classList.contains('show')) loadJD();
+    jdPanel.classList.toggle("show");
+    if (jdPanel.classList.contains("show")) loadJD();
 }
 
 async function loadJD() {
     try {
-        const r = await fetch(API + '/api/jd/default').then(r => r.json());
-        jdInput.value = r.jd || '';
-        jdStatus.textContent = r.jd ? '已设置' : '未设置';
-    } catch(e) { jdInput.value = ''; }
+        const r = await fetch(API + "/api/jd/default").then(r => r.json());
+        jdInput.value = r.jd || "";
+        jdStat.textContent = r.jd ? "已设置" : "未设置";
+    } catch(e) { jdInput.value = ""; }
 }
 
 async function saveJD() {
-    const text = jdInput.value.trim();
-    await fetch(API + '/api/jd/save', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({session_id: 'default', jd: text})
+    const t = jdInput.value.trim();
+    await fetch(API + "/api/jd/save", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({session_id: "default", jd: t})
     });
-    jdStatus.textContent = text ? '已设置' : '未设置';
-    addMsg('a', 'JD 已' + (text ? '保存' : '清空'));
-    jdPanel.classList.remove('show');
+    jdStat.textContent = t ? "已设置" : "未设置";
+    addMsg("ai", t ? "JD 已保存" : "JD 已清空");
+    jdPanel.classList.remove("show");
 }
 
 async function clearJD() {
-    if (!confirm('确认清除 JD？')) return;
-    jdInput.value = '';
+    if (!confirm("确认清除 JD？")) return;
+    jdInput.value = "";
     await saveJD();
 }
 
 async function send() {
     const t = inp.value.trim();
     if (!t || loading) return;
-    inp.value = '';
-    addMsg('u', t);
-    loading = true; sendBtn.disabled = true;
+    inp.value = "";
+    addMsg("user", t);
+    loading = true;
+    sendBtn.disabled = true;
     try {
-        const r = await fetch(API + '/api/chat', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+        const r = await fetch(API + "/api/chat", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
             body: JSON.stringify({input: t})
         }).then(r => r.json());
-        addMsg('a', r.reply || '(无回复)');
-    } catch(e) { addMsg('e', '请求失败: ' + e.message); }
-    loading = false; sendBtn.disabled = false; inp.focus();
+        addMsg("ai", r.reply || "(无回复)");
+    } catch(e) {
+        addMsg("err", "请求失败: " + e.message);
+    }
+    loading = false;
+    sendBtn.disabled = false;
+    inp.focus();
 }
 
 async function upload(el) {
     const f = el.files[0];
     if (!f) return;
-    el.value = '';
-    addMsg('u', '[上传] ' + f.name);
-    loading = true; sendBtn.disabled = true;
+    el.value = "";
+    addMsg("user", "[上传] " + f.name);
+    loading = true;
+    sendBtn.disabled = true;
     try {
         const fd = new FormData();
-        fd.append('file', f);
-        const r = await fetch(API + '/api/upload', {method: 'POST', body: fd}).then(r => r.json());
-        addMsg('a', r.reply || '解析完成');
-    } catch(e) { addMsg('e', '上传失败: ' + e.message); }
-    loading = false; sendBtn.disabled = false;
+        fd.append("file", f);
+        const r = await fetch(API + "/api/upload", {method: "POST", body: fd}).then(r => r.json());
+        addMsg("ai", r.reply || "解析完成");
+    } catch(e) {
+        addMsg("err", "上传失败: " + e.message);
+    }
+    loading = false;
+    sendBtn.disabled = false;
 }
 </script>
 </body>
