@@ -19,7 +19,9 @@
 13. 解析器校验自愈：Pydantic校验LLM输出，缺字段自动重试补全
 14. 文件解析：支持 PDF/DOCX/TXT 格式上传提取文字
 15. FastAPI 接口：RESTful API 封装，支持聊天和文件上传
-16. Token用量监控：累计超限主动弹窗警告
+16. JD管理独立化：JD与简历分离管理，支持独立设置/清除/查看JD，不再自动识别JD
+17. 极简前端：Vanilla JS 单页应用，聊天 + JD管理 + 文件上传三合一
+18. Token用量监控：累计超限主动弹窗警告
 ## 📂 目录结构
 
 agent 开发 - langchain/
@@ -112,3 +114,4 @@ A：PDF、DOCX、TXT。扫描件PDF暂不支持。
 
 Q：FastAPI 怎么启动？
 A：.venv\Scripts\python -m backend.app，默认端口8000。
+

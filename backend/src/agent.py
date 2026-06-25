@@ -19,10 +19,6 @@ _PENDING_JD: dict[str, str] = {}
 _PENDING_CLEAR: set[str] = set()
 
 
-def _is_jd_content(text: str) -> bool:
-    return any(m in text.lower() for m in ["岗位职责", "任职要求", "岗位JD", "职位描述", "招聘要求", "JD描述", "jd"])
-
-
 def _is_resume_content(text: str) -> bool:
     return any(m in text for m in ["【教育背景】", "【工作经历】", "【实习", "【项目", "【技能", "姓名：", "年龄：", "毕业院校"])
 
@@ -127,7 +123,18 @@ def _process_input(session_id: str, user_input: str) -> str:
     guard_result = content_guard(raw_input)
     if not guard_result["allow_pass"]:
         return guard_result["reply"]
-    # 2. 确认类指令处理（JD缓存 + 清空缓存）
+    # 2. JD 命令（CLI 用户设置JD）
+    if raw_input.startswith("设置JD") or raw_input.startswith("JD:") or raw_input.startswith("jd:"):
+        jd_text = raw_input.split(":", 1)[-1].strip() if ":" in raw_input else raw_input[4:].strip()
+        if jd_text:
+            _PENDING_JD[session_id] = jd_text
+            return "已保存JD，回复「是」确认 / 「否」取消"
+        return "格式：设置JD:<JD内容>"
+    if raw_input in ["查看JD", "查看岗位JD"]:
+        jd = cache_service.get(session_id, "jd") or "未设置JD"
+        return f"当前缓存的JD：\n{jd}"
+
+    # 3. 确认类指令处理（JD缓存 + 清空缓存）
     if raw_input in ["是", "是的", "好", "确认"]:
         if session_id in _PENDING_JD:
             cache_service.set(session_id, "jd", _PENDING_JD.pop(session_id))
