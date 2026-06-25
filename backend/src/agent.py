@@ -1,7 +1,7 @@
 ﻿"""招聘智能体Agent - 缓存版（Redis + 内存兜底）
 架构：安全守卫 → LLM意图识别 → 注册中心分发（缓存复用长文本）
 """
-import uuid
+import uuid, json
 from typing import Optional
 from loguru import logger
 from .tools.guard import content_guard
@@ -109,6 +109,19 @@ def _init_registry():
 
 
 def run_agent(session_id: str, user_input: str) -> str:
+    """入口：处理输入 + 保存对话历史"""
+    raw_input = user_input.strip()
+    result = _process_input(session_id, raw_input)
+
+    # 保存到对话历史（最多保留20条=10轮）
+    history = json.loads(cache_service.get(session_id, "history") or "[]")
+    history.append({"role": "user", "content": raw_input})
+    history.append({"role": "assistant", "content": result})
+    cache_service.set(session_id, "history", json.dumps(history[-20:]))
+
+    return result
+
+def _process_input(session_id: str, user_input: str) -> str:
     raw_input = user_input.strip()
     # 1. 前置内容拦截
     guard_result = content_guard(raw_input)
@@ -200,4 +213,7 @@ def start_chat():
 
 if __name__ == "__main__":
     start_chat()
+
+
+
 

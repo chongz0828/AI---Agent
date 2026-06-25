@@ -5,6 +5,7 @@ from loguru import logger
 from langchain_core.tools import tool
 from langchain_core.prompts import ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate
 from backend.src.llm import llm_chat
+from .resume_schema import ResumeSchema
 
 PARSER_SCENE = "parser"
 _PARSE_CACHE: dict = {"text": "", "json": "", "metrics": {}, "data": None}
@@ -133,4 +134,5 @@ def resume_parse_tool(resume_text: str, output_for_user: bool = False) -> str:
     if "error" in result:
         return f"简历解析失败：{result['error']}"
     return result["report"]
+
 

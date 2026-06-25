@@ -8,20 +8,19 @@ from backend.src.llm import llm_chat
 
 RISK_SCENE = "risk"
 
-SYSTEM_TPL_TEXT = """扫描简历风险，按维度输出预警清单：
-1. 简历造假风险：时间线矛盾、技能夸大、学历存疑
-2. 稳定性风险：频繁跳槽、职业断层期
-3. 合规风险：竞业限制嫌疑、法律纠纷迹象
-4. 敏感信息风险
+SYSTEM_TPL_TEXT = """扫描简历风险并输出JSON。规则：无风险标注"未发现明显信号"，不给出正面评价。
 
-规则：无风险标注"未发现明显信号"，不给出正面评价。
-
-输出格式：
-风险预警清单（已脱敏）
-风险等级：高/中/低
-问题类型：[造假/稳定性/合规/敏感信息]
-风险描述：[具体依据，无则填"未发现明显信号"]
-建议核实方向：[追问方向，无则填"无需额外核实"]"""
+输出JSON格式（仅输出JSON，不含说明文字）：
+{{
+  "level": "高/中/低",
+  "items": [
+    {{
+      "type": "造假风险/稳定性风险/合规风险/敏感信息",
+      "description": "具体依据",
+      "suggestion": "核实方向"
+    }}
+  ]
+}}"""
 
 HUMAN_TPL_TEXT = """【脱敏候选人简历画像】
 {resume_json}"""
@@ -46,8 +45,31 @@ def risk_audit(resume_json: str) -> Dict[str, Any]:
     except Exception as e:
         logger.error(f"风控审查LLM异常：{str(e)}")
         return {"error": f"模型调用失败：{str(e)}", "metrics": {}}
+    raw = reply_text.strip()
+    try:
+        data = json.loads(raw)
+        formatted = format_risk_report(data)
+    except (json.JSONDecodeError, Exception):
+        logger.warning("风控结果JSON解析失败，使用原始文本")
+        data = {"raw_text": raw}
+        formatted = raw
     logger.info("简历风控审查完成")
-    return {"risk_report": reply_text.strip(), "metrics": metrics}
+    return {"report": formatted, "raw": data, "metrics": metrics}
+
+
+
+
+def format_risk_report(data: dict) -> str:
+    """将结构化风险数据转为可读文本"""
+    lines = [f"风险等级：{data.get('level', '未评估')}"]
+    for item in data.get("items", []):
+        lines.append(f"问题类型：{item.get('type', '未知')}")
+        lines.append(f"风险描述：{item.get('description', '未发现明显信号')}")
+        lines.append(f"建议核实：{item.get('suggestion', '无需额外核实')}")
+        lines.append("---")
+    if not data.get("items"):
+        lines.append("未发现明显风险信号")
+    return chr(10).join(lines)
 
 
 @tool
@@ -56,5 +78,6 @@ def resume_risk_check(resume_json: str) -> str:
     result = risk_audit(resume_json)
     if "error" in result:
         return f"风控审查失败：{result['error']}"
-    return result["risk_report"]
+    return result["report"]
+
 

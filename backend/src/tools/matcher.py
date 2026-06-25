@@ -13,16 +13,21 @@ SYSTEM_TPL_TEXT = """按以下维度对人岗匹配打分(每项满分100)：
 
 打分基于事实，减分注明原因，不确定时守低标注"待定"。
 
-输出格式(仅文字，不含JSON)：
-学历匹配(10%)：XX分｜加权得分：XX
-经验年限(20%)：XX分｜加权得分：XX
-核心技能(30%)：XX分｜加权得分：XX
-项目含金量(20%)：XX分｜加权得分：XX
-稳定性(20%)：XX分｜加权得分：XX
-综合总分：XX 综合评级：S/A/B/C
-优势项：[匹配亮点]
-风险项：[扣分依据]
-行动建议：[可执行建议]"""
+输出JSON格式（仅输出JSON，不含说明文字）：
+{{
+  "total_score": 总分(0-100),
+  "grade": "S/A/B/C",
+  "dimensions": [
+    {{"name": "学历匹配", "weight": 0.10, "score": 分数, "reason": "原因"}},
+    {{"name": "经验年限", "weight": 0.20, "score": 分数, "reason": "原因"}},
+    {{"name": "核心技能", "weight": 0.30, "score": 分数, "reason": "原因"}},
+    {{"name": "项目含金量", "weight": 0.20, "score": 分数, "reason": "原因"}},
+    {{"name": "稳定性", "weight": 0.20, "score": 分数, "reason": "原因"}}
+  ],
+  "highlights": ["优势项"],
+  "risks": ["风险项"],
+  "suggestions": ["行动建议"]
+}}"""
 
 HUMAN_TPL_TEXT = """【结构化候选人简历画像】
 {resume_json}
@@ -53,8 +58,35 @@ def match_evaluate(resume_json: str, job_jd: str) -> Dict[str, Any]:
     except Exception as e:
         logger.error(f"人岗匹配LLM异常：{str(e)}")
         return {"error": f"模型调用失败：{str(e)}", "metrics": {}}
+    raw = reply_text.strip()
+    try:
+        data = json.loads(raw)
+        formatted = format_match_report(data)
+    except (json.JSONDecodeError, Exception):
+        logger.warning("匹配结果JSON解析失败，使用原始文本")
+        data = {"raw_text": raw}
+        formatted = raw
     logger.info("人岗匹配评估完成")
-    return {"report": reply_text.strip(), "metrics": metrics}
+    return {"report": formatted, "raw": data, "metrics": metrics}
+
+
+
+
+def format_match_report(data: dict) -> str:
+    """将结构化匹配数据转为可读文本"""
+    lines = []
+    total = data.get("total_score", 0)
+    grade = data.get("grade", "N/A")
+    for d in data.get("dimensions", []):
+        lines.append("{}({}%)：{}分".format(d["name"], int(d.get("weight", 0)*100), d.get("score",0)))
+    lines.append(f"综合总分：{total} 综合评级：{grade}")
+    for h in data.get("highlights", []):
+        lines.append(f"优势项：{h}")
+    for r in data.get("risks", []):
+        lines.append(f"风险项：{r}")
+    for s in data.get("suggestions", []):
+        lines.append(f"行动建议：{s}")
+    return chr(10).join(lines)
 
 
 @tool
@@ -64,4 +96,5 @@ def resume_job_match(resume_json: str, job_jd: str) -> str:
     if "error" in result:
         return f"人岗匹配失败：{result['error']}"
     return result["report"]
+
 
