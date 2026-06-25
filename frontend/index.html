@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -90,7 +90,7 @@ header .dot{width:7px;height:7px;border-radius:50%;background:#22c55e}
 
 <div class="btm">
 <div class="inp-wrap">
-<textarea id="input" rows="2" placeholder="输入内容，Enter 发送"></textarea>
+<textarea id="input" rows="2" placeholder="输入内容，Enter 发送" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();send()}"></textarea>
 <button id="sendBtn" onclick="send()">→</button>
 </div>
 <div class="tools">
@@ -110,26 +110,19 @@ const jdInput = document.getElementById("jdInput");
 const jdStat = document.getElementById("jdStat");
 let loading = false;
 
-inp.addEventListener("keydown", function(e) {
-    if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        send();
-    }
-});
-
 function addMsg(role, content) {
     const e = msgs.querySelector(".empty");
     if (e) e.remove();
     const w = document.createElement("div");
     w.className = "msg " + role;
-    w.innerHTML = "<div class="b">" + content.replace(/</g,"&lt;").replace(/\n/g,"<br>") + "</div><div class="clr"></div>";
+    w.innerHTML = `<div class="b">${content.replace(/</g,"&lt;").replace(/\n/g,"<br>")}</div><div class="clr"></div>`;
     msgs.appendChild(w);
     msgs.scrollTop = msgs.scrollHeight;
 }
 
 function clearHistory() {
     if (!confirm("确认清除所有对话记录？")) return;
-    msgs.innerHTML = "<div class="empty">发送消息或上传简历文件</div>";
+    msgs.innerHTML = '<div class="empty">发送消息或上传简历文件</div>';
     inp.value = "";
 }
 
@@ -175,7 +168,7 @@ async function send() {
         const r = await fetch(API + "/api/chat", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({input: t})
+        body: JSON.stringify({session_id: "default", input: t})
         }).then(r => r.json());
         addMsg("ai", r.reply || "(无回复)");
     } catch(e) {
@@ -195,7 +188,7 @@ async function upload(el) {
     sendBtn.disabled = true;
     try {
         const fd = new FormData();
-        fd.append("file", f);
+        fd.append("file", f); fd.append("session_id", "default");
         const r = await fetch(API + "/api/upload", {method: "POST", body: fd}).then(r => r.json());
         addMsg("ai", r.reply || "解析完成");
     } catch(e) {

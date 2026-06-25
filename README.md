@@ -1,117 +1,153 @@
-﻿# AI---Agent
-面向HR招聘场景的智能简历处理LangChain Agent
-> 项目状态：**可本地运行** | CLI + FastAPI 双模式，持续迭代开发
-> 技术栈：Python + LangChain + DeepSeek LLM
+# AI 招聘助手
 
-## ✨ 当前已实现功能
-1. 内容守卫拦截：业务关键词白名单(优先) + 闲聊词拦截 + LLM语义兜底
-2. 简历结构化解析：提取学历/实习/项目/技能/工作稳定性，输出可读报告+标准JSON
-3. 人岗多维度加权评估：学历/经验/技能/项目/稳定性五维打分，自动评级S/A/B/C
-4. 用工风控审查：识别跳槽、职业断层、信息造假等风险
-5. 文案生成：内置模板输出面试邀约、拒绝通知（零LLM调用）
-6. LLM意图识别：大模型分析用户语义判断意图，关键词匹配兜底
-7. 插件式注册中心：每个意图独立handler，新增功能只需注册一个函数
-8. Redis/内存双缓存：JD和简历解析结果缓存复用，7天过期，Redis不可用时自动降级
-9. 缓存指令增强：清空缓存需用户二次确认，防止误操作；支持单独清除JD缓存
-10. 多轮对话记忆：自动保存对话历史到Redis，支持连续上下文
-11. 评估报告结构化：匹配/风控报告JSON输出，原始数据存缓存可复用
-12. 规则后处理引擎：时间标准化、实习分类、技能清洗、隐私掩码、稳定性重算
-13. 解析器校验自愈：Pydantic校验LLM输出，缺字段自动重试补全
-14. 文件解析：支持 PDF/DOCX/TXT 格式上传提取文字
-15. FastAPI 接口：RESTful API 封装，支持聊天和文件上传
-16. JD管理独立化：JD与简历分离管理，支持独立设置/清除/查看JD，不再自动识别JD
-17. 极简前端：Vanilla JS 单页应用，聊天 + JD管理 + 文件上传三合一
-18. Token用量监控：累计超限主动弹窗警告
-## 📂 目录结构
+基于 LangChain + DeepSeek 的简历自动评估系统，支持简历解析、人岗匹配、风险审查全流程闭环。提供 CLI 命令行和 FastAPI Web 接口双模式。
 
-agent 开发 - langchain/
-├── main.py                # 启动入口
-├── requirements.txt       # 依赖列表
-├── .env.example           # 环境变量模板
-├── backend/
-│   ├── app.py             # 预留 FastAPI 入口
-│   └── src/
-│       ├── agent.py       # 核心编排：守卫 → LLM意图 → 注册中心分发
-│       ├── agent_intent.py    # LLM意图分类器 + 关键词兜底
-│       ├── agent_registry.py  # 插件式注册中心、AgentContext
-│       ├── cache.py       # 缓存模块（Redis + 内存双引擎）
-│       ├── config.py      # 全局配置
-│       ├── llm.py         # DeepSeek LLM 封装、Token统计
-│       ├── utils.py
-│       └── tools/
-│           ├── guard.py   # 内容守卫
-│           ├── parser.py  # 简历解析
-│           ├── matcher.py # 人岗匹配
-│           ├── risk.py    # 风险审查
-│           └── offer.py   # 文案生成
-├── data/
-├── frontend/
-└── test/
-    └── test_agent_quality.py
+---
 
-## 🚀 本地启动
+## 功能概览
 
-### 1. 配置
-复制 `.env.example` 为 `.env`，填入 DeepSeek 密钥：
-DEEPSEEK_API_KEY=你的密钥
-DEEPSEEK_BASE_URL=https://api.deepseek.com/v1
-LLM_MODEL=deepseek-v4-flash
+| 模块 | 功能 |
+|------|------|
+| 内容守卫 | 业务关键词白名单 + 闲聊拦截 + LLM 语义兜底 |
+| 简历解析 | 提取学历/实习/项目/技能/稳定性，输出结构化 JSON |
+| 人岗匹配 | 五维加权打分（学历/经验/技能/项目/稳定性），自动评级 S/A/B/C |
+| 风险审查 | 识别跳槽频繁、职业断层、信息造假等风险 |
+| 文案生成 | 面试邀约/拒绝通知固定模板（零 LLM 调用） |
+| LLM 意图识别 | 大模型语义判断 + 关键词兜底双引擎 |
+| 规则后处理 | 时间标准化、技能清洗、隐私掩码、稳定性重算 |
+| 评估报告结构化 | 匹配/风控报告 JSON 输出，可缓存复用 |
+| 多轮对话记忆 | 自动保存对话历史，支持连续上下文 |
+| 解析校验自愈 | Pydantic 校验 + 缺字段自动重试 |
+| JD 管理独立化 | JD 与简历分离管理，不再自动识别 |
+| 文件解析 | 支持 PDF / DOCX / TXT 格式上传 |
+| FastAPI 接口 | RESTful API，支持聊天/上传/解析 |
+| Web 前端 | Vanilla JS 单页应用，聊天+JD管理+文件上传 |
 
-### 2. 安装依赖
+---
+
+## 快速开始
+
+### 环境配置
+```bash
+# 1. 复制环境变量模板
+cp .env.example .env
+
+# 2. 填入 DeepSeek API Key
+# DEEPSEEK_API_KEY=your_key_here
+# DEEPSEEK_BASE_URL=https://api.deepseek.com/v1
+# LLM_MODEL=deepseek-v4-flash
+```
+
+### 安装
+```bash
 python -m venv .venv
 .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
+```
 
-### 3. 启动
+### 启动 CLI 模式
+```bash
 python main.py
+```
 
-### 支持指令
-粘贴岗位 JD → 回复「是」缓存 /「否」放弃
-纯粘贴简历 → 有缓存JD自动执行「解析+匹配+风控」
-面试邀约 / 拒绝通知 → 生成 HR 标准文案
-清空缓存 → 二次确认「是」后清除全部缓存
-quit → 退出程序
+### 启动 Web 模式
+```bash
+.venv\Scripts\python -m backend.app 8000
+```
+浏览器打开 `http://127.0.0.1:8000`
 
-## ⚠️ 已知缺陷
-1. 仅 CLI 控制台，无 Web 前端
-2. 仅支持纯文本简历，不支持 PDF/Word
-3. 未封装 HTTP 接口
-4. 缺少完整单元测试、日志持久化
-5. LLM意图识别每次请求增加少量Token消耗（约200-300 tokens）
+---
 
-## 📅 Roadmap
+## CLI 使用
 
-短期
-- PDF 简历文本提取（PyPDF2）
-- Token 超限后自动触发缓存清理
-- 完善缓存过期与会话隔离
+| 指令 | 说明 |
+|------|------|
+| 粘贴简历文本 | 自动解析，有 JD 则自动全量评估 |
+| 设置JD:<JD内容> | 设置岗位 JD，回复「是」确认 |
+| 查看JD | 查看当前缓存的 JD |
+| 清空JD | 清除 JD 缓存 |
+| 面试邀约 / 拒绝通知 | 生成 HR 标准文案 |
+| 清空缓存 | 二次确认后清除全部缓存 |
+| quit | 退出程序 |
 
-中期
-- LangGraph 状态机工作流
-- FastAPI HTTP 接口
-- Web 前端页面
-- 多会话隔离
+---
 
-长期
-- 单元测试覆盖
-- 日志持久化
-- 批量简历导入与评估
-- 导出评估报告为 PDF
+## API 文档
 
-## ❓ 常见问题
+启动 Web 模式后访问 `http://127.0.0.1:8000/docs` 查看 Swagger 文档。
 
-Q：Redis 没装能运行吗？
-A：能。系统自动检测，Redis 不可用时降级为内存缓存，功能完全一致。
+### 核心接口
 
-Q：LLM意图识别太慢怎么办？
-A：自动兜底到关键词匹配，不影响正常使用。
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | /api/chat | 聊天对话 |
+| POST | /api/upload | 上传简历文件 (PDF/DOCX/TXT) |
+| POST | /api/parse | 直接解析文件返回结构化 JSON |
+| GET | /api/jd/{session_id} | 读取缓存的 JD |
+| POST | /api/jd/save | 保存/更新 JD |
+| POST | /api/jd/clear | 清空 JD |
+| POST | /api/cache/clear | 清空全部缓存 |
 
-Q：启动提示模块找不到？
-A：必须使用 python main.py 启动。
+### 接口示例
 
-Q：文件上传支持什么格式？
-A：PDF、DOCX、TXT。扫描件PDF暂不支持。
+```bash
+# 聊天
+curl -X POST http://127.0.0.1:8000/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{"input":"解析这份简历..."}'
 
-Q：FastAPI 怎么启动？
-A：.venv\Scripts\python -m backend.app，默认端口8000。
+# 上传文件
+curl -X POST http://127.0.0.1:8000/api/upload \
+  -F "file=@resume.pdf"
+```
 
+---
+
+## 项目结构
+
+```
+.
+├── main.py                 # CLI 入口
+├── requirements.txt        # 依赖
+├── .env.example            # 环境变量模板
+├── frontend/
+│   └── index.html          # Web 前端（自包含单页）
+└── backend/
+    ├── app.py              # FastAPI 应用
+    └── src/
+        ├── agent.py        # 核心编排
+        ├── agent_intent.py # LLM 意图分类器
+        ├── agent_registry.py # 插件式注册中心
+        ├── cache.py        # Redis/内存双缓存
+        ├── config.py       # 全局配置
+        ├── llm.py          # DeepSeek 封装
+        └── tools/
+            ├── guard.py       # 内容守卫
+            ├── parser.py      # 简历解析
+            ├── matcher.py     # 人岗匹配
+            ├── risk.py        # 风险审查
+            ├── offer.py       # 文案生成
+            ├── rules.py       # 规则后处理引擎
+            ├── resume_schema.py # Pydantic 校验模型
+            └── file_parser.py # 文件格式解析
+```
+
+---
+
+## 已知限制
+
+- 扫描件 PDF（图片式）暂不支持，需 OCR 前置处理
+- 评估准确率受 LLM 输出稳定性影响，极端情况会回退纯文本
+- 内存缓存模式下重启 API 会导致缓存丢失（建议安装 Redis）
+- LLM 意图识别每次请求增加约 200-300 tokens 消耗
+
+---
+
+## 技术栈
+
+- **语言框架**: Python 3.11, LangChain, FastAPI
+- **大模型**: DeepSeek (OpenAI 兼容接口)
+- **数据校验**: Pydantic v2
+- **缓存**: Redis / 内存字典双引擎
+- **前端**: Vanilla JS (Vue 3 运行时内嵌)
+- **文件解析**: pdfplumber, python-docx
