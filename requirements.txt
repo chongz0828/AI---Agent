@@ -19,3 +19,11 @@ black>=24.0.0              # 代码格式化
 ruff>=0.3.0                # 代码检查与自动修复
 # redis缓存
 redis>=5.0.0
+
+# FastAPI
+fastapi>=0.109.0
+uvicorn>=0.27.0
+python-multipart>=0.0.6
+# 文件解析
+pdfplumber>=0.10.0
+python-docx>=1.1.0

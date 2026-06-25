@@ -144,6 +144,11 @@ def _process_input(session_id: str, user_input: str) -> str:
         if session_id in _PENDING_CLEAR:
             _PENDING_CLEAR.discard(session_id)
             return "已取消清除操作。"
+    # 2.5 清除JD缓存
+    if any(kw in raw_input for kw in ["清除JD", "清空JD", "删除JD"]):
+        cache_service.delete(session_id, "jd")
+        _PENDING_JD.pop(session_id, None)
+        return "已清除JD缓存"
     # 3. 构建上下文
     ctx = AgentContext(session_id=session_id, user_input=raw_input,
         tools={"parser": resume_parse_tool, "matcher": resume_job_match,
@@ -187,7 +192,7 @@ def _process_input(session_id: str, user_input: str) -> str:
         else:
             tip += " 是否缓存该JD用于后续简历评估？"
         return tip + "\n回复「是」保存 / 「否」取消"
-    return "未识别指令。支持：简历解析、人岗匹配、风控、面试/拒绝文案、清空缓存。"
+    return "未识别指令。支持：简历解析、人岗匹配、风控、面试/拒绝文案、清空JD、清空缓存。"
 
 
 def start_chat():
@@ -213,6 +218,7 @@ def start_chat():
 
 if __name__ == "__main__":
     start_chat()
+
 
 
 
